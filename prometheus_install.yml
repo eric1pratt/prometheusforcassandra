@@ -1,0 +1,23 @@
+- hosts: all
+  remote_user: 
+  gather_facts: true
+  become: true
+  tasks:
+  - name: copy the prometheus agent
+    copy: src=files/jmx_prometheus_javaagent-0.6.jar dest=/usr/share/cassandra/lib/jmx_prometheus_javaagent-0.6.jar
+  - name: copy prometheus.yml
+    copy: src=files/prometheus.yml dest=/etc/cassandra/conf/prometheus.yaml owner=cassandra group=cassandra
+  - name: edit the cassandra-env file add prometheus to the end
+    lineinfile: dest=/etc/cassandra/conf/cassandra-env.sh state=present line=JVM_OPTS="$JVM_OPTS -javaagent:/usr/share/cassandra/lib/jmx_prometheus_javaagent-0.6.jar=7070:/etc/cassandra/conf/prometheus.yaml"
+  - name: restart cassandra
+    service: name=cassandra state=restarted
+  - name: wait for port 7000
+    wait_for: host={{ ansible_default_ipv4.address }} port=7000 delay=20
+  - name: copy prometheus init script to have prometheus run as a service
+    copy: src=files/node_exporter.init dest=/etc/rc.d/init.d/node_exporter owner=root group=root mode=0755
+  - name: create prometheus directory in /usr/local/bin
+    file: path=/usr/local/bin/prometheus state=directory
+  - name: copy the node exporter
+    unarchive: src=files/node_exporter-0.12.0.linux-amd64.tar.gz dest=/usr/local/bin/prometheus
+  - name: start the node_exporter service
+    service: name=node_exporter state=started
