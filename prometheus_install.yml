@@ -4,7 +4,7 @@
   become: true
   tasks:
   - name: copy the prometheus agent
-    copy: src=files/jmx_prometheus_javaagent-0.6.jar dest=/usr/share/cassandra/lib/jmx_prometheus_javaagent-0.10.jar
+    copy: src=files/jmx_prometheus_javaagent-0.10.jar dest=/usr/share/cassandra/lib/jmx_prometheus_javaagent-0.10.jar
   - name: copy prometheus.yml
     copy: src=files/prometheus.yml dest=/etc/cassandra/conf/prometheus.yaml owner=cassandra group=cassandra
   - name: edit the cassandra-env file add prometheus to the end
